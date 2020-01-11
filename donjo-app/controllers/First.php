@@ -5,6 +5,7 @@ class First extends Web_Controller {
 	public function __construct()
 	{
 		parent::__construct();
+		parent::clear_cluster_session();
 		session_start();
 
 		// Jika offline_mode dalam level yang menyembunyikan website,
@@ -282,7 +283,6 @@ class First extends Web_Controller {
 
 	public function statistik($stat=0, $tipe=0)
 	{
-		parent::clear_cluster_session();
 		$data = $this->includes;
 
 		$data['heading'] = $this->laporan_penduduk_model->judul_statistik($stat);
@@ -410,7 +410,7 @@ class First extends Web_Controller {
 			$no++;
 			$row = array();
 			$row[] = $no;
-			$row[] = "<a href='".base_url('desa/upload/dokumen/').$baris['satuan']."' target='_blank'>".$baris['nama']."</a>";
+			$row[] = "<a href='".site_url('dokumen_web/unduh_berkas/').$baris['id']."' target='_blank'>".$baris['nama']."</a>";
 			$row[] = $baris['tahun'];
 			// Ambil judul kategori
 			$row[] = $this->referensi_model->list_kode_array(KATEGORI_PUBLIK)[$baris['kategori_info_publik']];
