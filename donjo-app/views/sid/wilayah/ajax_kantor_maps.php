@@ -14,112 +14,50 @@ window.onload = function()
 	//Inisialisasi tampilan peta
 	var peta_kantor = L.map('mapx').setView(posisi, zoom);
 
+	//1. Menampilkan overlayLayers Peta Semua Wilayah
+	var marker_desa = [];
+	var marker_dusun = [];
+	var marker_rw = [];
+	var marker_rt = [];
+
+	//WILAYAH DESA
+	<?php if (!empty($desa['path'])): ?>
+    set_marker_desa(marker_desa, <?=json_encode($desa)?>, "<?=ucwords($this->setting->sebutan_desa).' '.$desa['nama_desa']?>", "<?= favico_desa()?>");
+	<?php endif; ?>
+
+	//WILAYAH DUSUN
+  <?php if (!empty($dusun_gis)): ?>
+    set_marker(marker_dusun, '<?=addslashes(json_encode($dusun_gis))?>', '#FFFF00', '<?=ucwords($this->setting->sebutan_dusun)?>', 'dusun');
+  <?php endif; ?>
+
+  //WILAYAH RW
+  <?php if (!empty($rw_gis)): ?>
+    set_marker(marker_rw, '<?=addslashes(json_encode($rw_gis))?>', '#8888dd', 'RW', 'rw');
+  <?php endif; ?>
+
+  //WILAYAH RT
+  <?php if (!empty($rt_gis)): ?>
+    set_marker(marker_rt, '<?=addslashes(json_encode($rt_gis))?>', '#008000', 'RT', 'rt');
+  <?php endif; ?>
+
+	//2. Menampilkan overlayLayers Peta Semua Wilayah
+  <?php if (!empty($wil_atas['path'])): ?>
+    var overlayLayers = overlayWil(marker_desa, marker_dusun, marker_rw, marker_rt);
+  <?php else: ?>
+    var overlayLayers = {};
+  <?php endif; ?>
+
 	//Menampilkan BaseLayers Peta
-	var defaultLayer = L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(peta_kantor);
+  var baseLayers = getBaseLayers(peta_kantor, '<?=$this->setting->google_key?>');
 
-	var baseLayers = {
-		'OpenStreetMap': defaultLayer,
-		'OpenStreetMap H.O.T.': L.tileLayer.provider('OpenStreetMap.HOT'),
-		'Mapbox Streets' : L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}@2x.png?access_token=<?=$this->setting->google_key?>', {attribution: '<a href="https://www.mapbox.com/about/maps">© Mapbox</a> <a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> | <a href="https://mapbox.com/map-feedback/">Improve this map</a>'}),
-		'Mapbox Outdoors' : L.tileLayer('https://api.mapbox.com/v4/mapbox.outdoors/{z}/{x}/{y}@2x.png?access_token=<?=$this->setting->google_key?>', {attribution: '<a href="https://www.mapbox.com/about/maps">© Mapbox</a> <a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> | <a href="https://mapbox.com/map-feedback/">Improve this map</a>'}),
-		'Mapbox Streets Satellite' : L.tileLayer('https://api.mapbox.com/v4/mapbox.streets-satellite/{z}/{x}/{y}@2x.png?access_token=<?=$this->setting->google_key?>', {attribution: '<a href="https://www.mapbox.com/about/maps">© Mapbox</a> <a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> | <a href="https://mapbox.com/map-feedback/">Improve this map</a>'}),
-	};
-
-	var lokasi_kantor = L.marker(posisi, {draggable: true}).addTo(peta_kantor);
-	lokasi_kantor.on('dragend', function(e){
-		$('#lat').val(e.target._latlng.lat);
-		$('#lng').val(e.target._latlng.lng);
-		$('#map_tipe').val("HYBRID");
-		$('#zoom').val(peta_kantor.getZoom());
-	})
-
-	peta_kantor.on('zoomstart zoomend', function(e){
-		$('#zoom').val(peta_kantor.getZoom());
-	})
-
-	$('#lat').on("input",function(e) {
-		if (!$('#validasi1').valid())
-		{
-			$("#simpan_kantor").attr('disabled', true);
-			return;
-		} else
-		{
-			$("#simpan_kantor").attr('disabled', false);
-		}
-		let lat = $('#lat').val();
-		let lng = $('#lng').val();
-		let latLng = L.latLng({
-			lat: lat,
-			lng: lng
-		});
-
-		lokasi_kantor.setLatLng(latLng);
-		peta_kantor.setView(latLng,zoom);
-	})
-
-	$('#lng').on("input",function(e) {
-		if (!$('#validasi1').valid())
-		{
-			$("#simpan_kantor").attr('disabled', true);
-			return;
-		} else
-		{
-			$("#simpan_kantor").attr('disabled', false);
-		}
-		let lat = $('#lat').val();
-		let lng = $('#lng').val();
-		let latLng = L.latLng({
-			lat: lat,
-			lng: lng
-		});
-
-		lokasi_kantor.setLatLng(latLng);
-		peta_kantor.setView(latLng, zoom);
-	})
-
-	//Unggah Peta dari file GPX/KML
-
+	//Menampilkan dan Menambahkan Peta wilayah + Geolocation GPS + Exim GPX/KML
 	L.Control.FileLayerLoad.LABEL = '<img class="icon" src="<?= base_url()?>assets/images/folder.svg" alt="file icon"/>';
+	showCurrentPoint(posisi, peta_kantor);
 
-	control = L.Control.fileLayerLoad({
-		addToMap: false,
-		formats: [
-			'.gpx',
-			'.kml'
-		],
-		fitBounds: true,
-		layerOptions: {
-			pointToLayer: function (data, latlng) {
-				return L.marker(latlng);
-			},
+	//Menambahkan zoom scale ke peta
+	L.control.scale().addTo(peta_kantor);
 
-		}
-	});
-	control.addTo(peta_kantor);
-
-	control.loader.on('data:loaded', function (e) {
-		peta_kantor.removeLayer(lokasi_kantor);
-		var type = e.layerType;
-		var layer = e.layer;
-		var coords=[];
-		var geojson = layer.toGeoJSON();
-		var shape_for_db = JSON.stringify(geojson);
-
-		var polygon =
-		L.geoJson(JSON.parse(shape_for_db), {
-			pointToLayer: function (feature, latlng) {
-				return L.marker(latlng);
-			},
-			onEachFeature: function (feature, layer) {
-				coords.push(feature.geometry.coordinates);
-			}
-		}).addTo(peta_kantor)
-
-		document.getElementById('lat').value = coords[0][1];
-		document.getElementById('lng').value = coords[0][0];
-	});
-
-	L.control.layers(baseLayers, null, {position: 'topleft', collapsed: true}).addTo(peta_kantor);
+	L.control.layers(baseLayers, overlayLayers, {position: 'topleft', collapsed: true}).addTo(peta_kantor);
 
 }; //EOF window.onload
 </script>
@@ -127,7 +65,7 @@ window.onload = function()
 	#mapx
 	{
 		width:100%;
-		height:50vh
+		height:45vh
 	}
 	.icon {
 		max-width: 70%;
@@ -138,6 +76,9 @@ window.onload = function()
   	display: block;
   	position: relative;
   }
+	.leaflet-control-locate a {
+  font-size: 2em;
+	}
 </style>
 <!-- Menampilkan OpenStreetMap dalam Box modal bootstrap (AdminLTE)  -->
 <div class="content-wrapper">
@@ -163,7 +104,6 @@ window.onload = function()
 										<input type="hidden" name="zoom" id="zoom"  value="<?= $wil_ini['zoom']?>"/>
 										<input type="hidden" name="map_tipe" id="map_tipe"  value="<?= $wil_ini['map_tipe']?>"/>
 										<input type="hidden" name="id" id="id"  value="<?= $wil_ini['id']?>"/>
-
 									</div>
 								</div>
 							</div>
@@ -171,18 +111,20 @@ window.onload = function()
 						<div class='box-footer'>
 							<div class='col-xs-12'>
 								<div class="form-group">
-									<label class="col-sm-3 control-label" for="lat">Lat</label>
+									<label class="col-sm-3 control-label" for="lat">Latitude</label>
 									<div class="col-sm-9">
 										<input type="text" class="form-control number" name="lat" id="lat" value="<?= $wil_ini['lat']?>"/>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-sm-3 control-label" for="lat">Lng</label>
+									<label class="col-sm-3 control-label" for="lat">Longitude</label>
 									<div class="col-sm-9">
 										<input type="text" class="form-control number" name="lng" id="lng" value="<?= $wil_ini['lng']?>" />
 									</div>
 								</div>
-								<button type='reset' class='btn btn-social btn-flat btn-danger btn-sm invisible' ><i class='fa fa-times'></i> Batal</button>
+								<a href="<?= $tautan['link'] ?>" class="btn btn-social btn-flat bg-purple btn-sm visible-xs-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block" title="Kembali"><i class="fa fa-arrow-circle-o-left"></i> Kembali</a>
+								<a href="#" class="btn btn-social btn-flat btn-success btn-sm visible-xs-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block" download="OpenSID.gpx" id="exportGPX"><i class='fa fa-download'></i> Export ke GPX</a>
+								<button type='reset' class='btn btn-social btn-flat btn-danger btn-sm' id="resetme"><i class='fa fa-times'></i> Reset</button>
 								<button type='submit' class='btn btn-social btn-flat btn-info btn-sm pull-right' id="simpan_kantor"><i class='fa fa-check'></i> Simpan</button>
 							</div>
 						</div>
@@ -232,5 +174,6 @@ window.onload = function()
 		});
 	});
 </script>
+
 <script src="<?= base_url()?>assets/js/leaflet.filelayer.js"></script>
 <script src="<?= base_url()?>assets/js/togeojson.js"></script>

@@ -32,11 +32,11 @@ class Gallery extends Admin_Controller {
 		else $data['filter'] = '';
 
 		if (isset($_POST['per_page']))
-			$_SESSION['per_page']=$_POST['per_page'];
+			$_SESSION['per_page'] = $_POST['per_page'];
 		$data['per_page'] = $_SESSION['per_page'];
 
-		$data['paging']  = $this->web_gallery_model->paging($p,$o);
-		$data['main']    = $this->web_gallery_model->list_data($o, $data['paging']->offset, $data['paging']->per_page);
+		$data['paging'] = $this->web_gallery_model->paging($p,$o);
+		$data['main'] = $this->web_gallery_model->list_data($o, $data['paging']->offset, $data['paging']->per_page);
 		$data['keyword'] = $this->web_gallery_model->autocomplete();
 
 		$header = $this->header_model->get_data();
@@ -263,5 +263,14 @@ class Gallery extends Admin_Controller {
 	{
 		$this->web_gallery_model->gallery_lock($id, 2);
 		redirect("gallery/sub_gallery/$gallery");
+	}
+
+	public function urut($id, $arah = 0, $gallery='')
+	{
+		$this->web_gallery_model->urut($id, $arah, $gallery);
+		if ($gallery != '')
+			redirect("gallery/sub_gallery/$gallery");
+		else
+			redirect("gallery/index");
 	}
 }

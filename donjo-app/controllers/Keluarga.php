@@ -12,6 +12,7 @@ class Keluarga extends Admin_Controller {
 		$this->load->model('wilayah_model');
 		$this->load->model('program_bantuan_model');
 		$this->load->model('referensi_model');
+		$this->load->model('config_model');
 		$this->modul_ini = 2;
 	}
 
@@ -82,7 +83,6 @@ class Keluarga extends Admin_Controller {
 		}
 		$data['paging'] = $this->keluarga_model->paging($p,$o);
 		$data['main'] = $this->keluarga_model->list_data($o, $data['paging']->offset, $data['paging']->per_page);
-		$data['keyword'] = $this->keluarga_model->autocomplete();
 		$data['list_dusun'] = $this->penduduk_model->list_dusun();
 
 		$nav['act'] = 2;
@@ -93,6 +93,12 @@ class Keluarga extends Admin_Controller {
 		$this->load->view('nav',$nav);
 		$this->load->view('sid/kependudukan/keluarga', $data);
 		$this->load->view('footer');
+	}
+
+	public function autocomplete()
+	{
+		$data = $this->keluarga_model->autocomplete($this->input->post('cari'));
+		echo json_encode($data);
 	}
 
 	public function cetak($o=0)
@@ -311,18 +317,18 @@ class Keluarga extends Admin_Controller {
 
 	public function insert_a()
 	{
+		$id_kk = $this->input->post('id_kk');
 		$this->keluarga_model->insert_a();
 		if ($_SESSION['validation_error'])
 		{
-			$id_kk = $this->input->post('id_kk');
 			$_SESSION['id_kk'] = $id_kk;
 			$_SESSION['kk'] = $this->keluarga_model->get_kepala_a($id_kk);
 			$_SESSION['dari_internal'] = true;
-			redirect("keluarga/form_a/$p/0/$id_kk");
+			redirect("keluarga/form_a/1/0/$id_kk");
 		}
 		else
 		{
-			redirect('keluarga');
+			redirect("keluarga/kartu_keluarga/1/0/$id_kk");
 		}
 	}
 
@@ -341,12 +347,6 @@ class Keluarga extends Admin_Controller {
 		{
 			redirect('keluarga');
 		}
-	}
-
-	public function update($id='')
-	{
-		$this->keluarga_model->update($id);
-		redirect('keluarga');
 	}
 
 	public function update_nokk($id='')
@@ -436,7 +436,7 @@ class Keluarga extends Admin_Controller {
 		$data['hubungan'] = $this->keluarga_model->list_hubungan();
 		$data['main'] = $this->keluarga_model->list_anggota($id);
 		$kk = $this->keluarga_model->get_kepala_kk($id);
-		$data['desa'] = $this->keluarga_model->get_desa();
+		$data['desa'] = $this->config_model->get_data();
 		if ($kk)
 			$data['kepala_kk'] = $kk;
 		else
@@ -481,7 +481,7 @@ class Keluarga extends Admin_Controller {
 	public function add_anggota($p=1, $o=0, $id=0)
 	{
 		$this->keluarga_model->add_anggota($id);
-		redirect("keluarga/index/$p/$o");
+		redirect("keluarga/anggota/$p/$o/$id");
 	}
 
 	public function update_anggota($p=1, $o=0, $id_kk=0, $id=0)
