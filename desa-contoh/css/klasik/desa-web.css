@@ -22,3 +22,12 @@ body{
 	background-color: #3c8dbc;
 	-- hapus baris ini */
 }
+/* Aktifkan untuk menyembunyikan feed luar */
+#feed{
+	/*display: none;*/
+}
+
+/* Aktifkan untuk mengubah judul artikel dengan awalan huruf kapital setelah spasi */
+.artikel .judul {
+	/* text-transform: capitalize; */
+}

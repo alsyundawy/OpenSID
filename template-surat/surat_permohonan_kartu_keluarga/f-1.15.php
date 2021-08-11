@@ -95,7 +95,7 @@
 			<?php for ($i=0; $i<2; $i++): ?>
 				<td class="kotak padat tengah">
 					<?php if (isset($config['kode_kabupaten'][$i])): ?>
-						<?= $config['kode_kabupaten'][$i];?>
+						<?= substr($config['kode_kabupaten'], 2, 4)[$i]; ?>
 					<?php else: ?>
 						&nbsp;
 					<?php endif; ?>
@@ -112,7 +112,7 @@
 			<?php for ($i=0; $i<2; $i++): ?>
 				<td class="kotak padat tengah">
 					<?php if (isset($config['kode_kecamatan'][$i])): ?>
-						<?= $config['kode_kecamatan'][$i];?>
+						<?= substr($config['kode_kecamatan'], 4, 6)[$i]; ?>
 					<?php else: ?>
 						&nbsp;
 					<?php endif; ?>
@@ -129,7 +129,7 @@
 			<?php for ($i=0; $i<4; $i++): ?>
 				<td class="kotak padat tengah">
 					<?php if (isset($config['kode_desa'][$i])): ?>
-						<?= $config['kode_desa'][$i];?>
+						<?= substr($config['kode_desa'], 6, 10)[$i]; ?>
 					<?php else: ?>
 						&nbsp;
 					<?php endif; ?>
@@ -343,15 +343,15 @@
 			<td colspan="4">&nbsp;</td>
 			<td colspan="16" style="text-align: center;">Mengetahui</td>
 			<td colspan="15">&nbsp;</td>
-			<td colspan="10" style="text-align: center;">Pemohon</td>
-			<td colspan="3">&nbsp;</td>
+			<td colspan="12" style="text-align: center;">Pemohon</td>
+			<td>&nbsp;</td>
 		</tr>
 		<tr><td colspan="48">&nbsp;</td></tr>
 		<tr>
 			<td>&nbsp;</td>
 			<td colspan="11" style="text-align: center;">Camat</td>
 			<td>&nbsp;</td>
-			<td colspan="13" style="text-align: center;">Kepala Desa/Lurah</td>
+			<td colspan="13" style="text-align: center;"><?= $this->penandatangan_lampiran($data);?></td>
 			<td colspan="22">&nbsp;</td>
 		</tr>
 		<tr><td colspan="48">&nbsp;</td></tr>
@@ -360,10 +360,10 @@
 			<td>&nbsp;</td>
 			<td colspan="11"><?= str_pad(".",50,".",STR_PAD_LEFT);?></td>
 			<td>&nbsp;</td>
-			<td colspan="13" style="text-align: center;">(&nbsp;<?= padded_string_center(strtoupper($kepala_desa['pamong_nama']),30)?>&nbsp;)</td>
+			<td colspan="13" style="text-align: center;"><strong>(<?= padded_string_center(strtoupper($kepala_desa['pamong_nama']),30)?>)</strong></td>
 			<td colspan="9">&nbsp;</td>
-			<td colspan="10" style="text-align: center;">(&nbsp;<?= padded_string_center(strtoupper($individu['nama']),30)?>&nbsp;)</td>
-			<td colspan="3">&nbsp;</td>
+			<td colspan="12" style="text-align: center;"><strong>(<?= padded_string_center(strtoupper($individu['nama']),30)?>)</strong></td>
+			<td>&nbsp;</td>
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
@@ -401,7 +401,6 @@
 			<td colspan="6" class="kotak">&nbsp;</td>
 			<td colspan="10">&nbsp;</td>
 		</tr>
-
 		<tr><td colspan="48">&nbsp;</td></tr>
 		<tr><td colspan="48">&nbsp;</td></tr>
 		<tr><td colspan="48">&nbsp;</td></tr>
@@ -412,5 +411,4 @@
 			<?php endfor; ?>
 		</tr>
 	</table>
-
 </page>

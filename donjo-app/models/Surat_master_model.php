@@ -1,4 +1,4 @@
-<?php class Surat_master_model extends CI_Model {
+<?php class Surat_master_model extends MY_Model {
 
 	public function __construct()
 	{
@@ -7,8 +7,7 @@
 
 	public function autocomplete()
 	{
-		$str = autocomplete_str('nama', 'tweb_surat_format');
-		return $str;
+		return $this->autocomplete_str('nama', 'tweb_surat_format');
 	}
 
 
@@ -217,25 +216,23 @@
 		}
 	}
 
-	public function delete($id='')
+	public function delete($id='', $semua=false)
 	{
+		if (!$semua) $this->session->success = 1;
 		// Surat jenis sistem (nilai 1) tidak bisa dihapus
-		$sql = "DELETE FROM tweb_surat_format WHERE jenis <> 1 AND id = ?";
-		$outp = $this->db->query($sql,array($id));
+		$outp = $this->db->where('id', $id)->where('jenis <>', 1)->delete('tweb_surat_format');
 
-		status_sukses($outp); //Tampilkan Pesan
+		status_sukses($outp, $gagal_saja=true); //Tampilkan Pesan
 	}
 
 	public function delete_all()
 	{
-		$id_cb = $_POST['id_cb'];
+		$this->session->success = 1;
 
-		if (count($id_cb))
+		$id_cb = $_POST['id_cb'];
+		foreach ($id_cb as $id)
 		{
-			foreach ($id_cb as $id)
-			{
-				$this->delete($id);
-			}
+			$this->delete($id, $semua=true);
 		}
 	}
 
@@ -342,10 +339,10 @@
 	// Tambahkan surat desa jika folder surat tidak ada di surat master
 	public function impor_surat_desa()
 	{
-		$folder_surat_desa = glob('desa/template-surat/*' , GLOB_ONLYDIR);
+		$folder_surat_desa = glob(LOKASI_SURAT_DESA.'*' , GLOB_ONLYDIR);
 		foreach ($folder_surat_desa as $surat)
 		{
-			$surat = str_replace('desa/template-surat/', '', $surat);
+			$surat = str_replace(LOKASI_SURAT_DESA, '', $surat);
 			$hasil = $this->db->where('url_surat', $surat)->get('tweb_surat_format');
 			if ($hasil->num_rows() == 0)
 			{
@@ -353,7 +350,8 @@
 				$data['jenis'] = 2;
 				$data['url_surat'] = $surat;
 				$data['nama'] = ucwords(trim(str_replace(array("surat","-","_"), ' ', $surat)));
-				$this->db->insert('tweb_surat_format', $data);
+				$sql = $this->db->insert_string('tweb_surat_format', $data) . " ON DUPLICATE KEY UPDATE jenis = VALUES(jenis), nama = VALUES(nama)";
+				$this->db->query($sql);
 			}
 		}
 	}
@@ -413,6 +411,17 @@
 				->where(array('url_surat' => $url_surat))
 				->get('tweb_surat_format')->row_array();
 		return $sudahAda['ada'];
+	}
+
+	public function get_syarat_surat($id=1)
+	{
+		$data = $this->db->select('r.ref_syarat_id, r.ref_syarat_nama')
+			->where('surat_format_id', $id)
+			->from('syarat_surat s')
+			->join('ref_syarat_surat r', 's.ref_syarat_id = r.ref_syarat_id')
+			->order_by('ref_syarat_id')
+			->get()->result_array();
+		return $data;
 	}
 }
 

@@ -1,59 +1,56 @@
 <?php  if(!defined('BASEPATH')) exit('No direct script access allowed'); ?>
 
-<?php
+<style type="text/css">
+	.center { text-align: center; }
+</style>
 
-	echo "
-	<div class=\"box box-danger\">
-		<div class=\"box-header with-border\">
-			<h3 class=\"box-title\">Data Demografi Berdasar ". $heading."</h3>
-		</div>
-		<div class=\"box-body\">";
-			if(count($main) > 0){
-				echo "
-			<table class=\"table table-striped\">
-				<thead><tr>
-					<th>No</th>
-					<th>Nama Dusun</th>
-					<th>Nama Kepala Dusun</th>
-					<th>Jumlah RT</th>
-					<th>Jumlah KK</th>
-					<th>Jiwa</th>
-					<th>Lk</th>
-					<th>Pr</th>
-				</tr></thead>
+<div class="box box-danger">
+	<div class="box-header with-border">
+		<h3 class="box-title">Data Demografi Berdasar <?= $heading ?></h3>
+	</div>
+	<div class="box-body">
+		<?php if(count($main) > 0) : ?>
+			<table class="table table-striped" width="100%">
+				<thead>
+					<tr>
+						<th>No</th>
+						<th><?= ucwords($this->setting->sebutan_dusun)?></th>
+						<th>RW</th>
+						<th>RT</th>
+						<th>Nama Kepala/Ketua</th>
+						<th class="center">KK</th>
+						<th class="center">L+P</th>
+						<th class="center">L</th>
+						<th class="center">P</th>
+					</tr>
+				</thead>
 				<tbody>
-					";
-					foreach($main as $data){
-						echo "<tr>
-							<td>".$data['no']."</td>
-							<td>".strtoupper($data['dusun'])."</td>
-							<td>".strtoupper($data['nama_kadus'])."</td>
-							<td class=\"angka\">".$data['jumlah_rt']."</td>
-							<td class=\"angka\">".$data['jumlah_kk']."</td>
-							<td class=\"angka\">".$data['jumlah_warga']."</td>
-							<td class=\"angka\">".$data['jumlah_warga_l']."</td>
-							<td class=\"angka\">".$data['jumlah_warga_p']."</td>
-						</tr>";
-					}
-					echo "
-					</tbody>
-					<tfooter>
+					<?php foreach ($main as $indeks => $data): ?>
 						<tr>
-							<th colspan=\"3\" class=\"angka\">TOTAL</th>
-							<th class=\"angka\">".$total['total_rt']."</th>
-							<th class=\"angka\">".$total['total_kk']."</th>
-							<th class=\"angka\">".$total['total_warga']."</th>
-							<th class=\"angka\">".$total['total_warga_l']."</th>
-							<th class=\"angka\">".$total['total_warga_p']."</th>
+							<td align="center"><?= $indeks + 1?></td>
+							<td><?= ($main[$indeks - 1]['dusun'] == $data['dusun']) ? '' : strtoupper($data['dusun'])?></td>
+							<td><?= ($main[$indeks - 1]['rw'] == $data['rw']) ? '' : $data['rw']?></td>
+							<td><?= $data['rt']?></td>
+							<td><?= $data['nama_kepala']?></td>
+							<td align="right"><?= $data['jumlah_kk']?></td>
+							<td align="right"><?= $data['jumlah_warga']?></td>
+							<td align="right"><?= $data['jumlah_warga_l']?></td>
+							<td align="right"><?= $data['jumlah_warga_p']?></td>
 						</tr>
-					</tfooter>
-				</table>";
-			}else{
-				echo "<div class=\"\">Belum ada data</div>";
-			}
-
-		echo "
-		</div>
-	</div>";
-?>
-
+					<?php endforeach; ?>
+				</tbody>
+				<tfoot>
+					<tr style="background-color:#BDD498;font-weight:bold;">
+						<td colspan="5" align="left"><label>TOTAL</label></td>
+						<td align="right"><?= $total['total_kk']?></td>
+						<td align="right"><?= $total['total_warga']?></td>
+						<td align="right"><?= $total['total_warga_l']?></td>
+						<td align="right"><?= $total['total_warga_p']?></td>
+					</tr>
+				</tfoot>
+			</table>
+		<?php else : ?>
+			Belum ada data...
+		<?php endif ?>
+	</div>
+</div>
